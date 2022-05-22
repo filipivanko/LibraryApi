@@ -78,5 +78,19 @@ class AuthorController extends Controller
         //
     }
 
+    public function find($term)
+    {   $authors = Author::where('name','like','%'.$term.'%')->get();
+        if(count($authors)!==0){
+            $data = new stdClass();
+            $data->authors = [];
+            $data->_links = ['_self' =>'http://library-assignment.filipivanko.com/api/authors/find/'.$term];
+            foreach ($authors as $author) {
+                array_push($data->authors, $author->getAuthorInfo('author_profile'));
+            }
+            return  response(json_encode($data,JSON_UNESCAPED_SLASHES),200);
+        }else{
+            return  response(json_encode(['message'=>'No records found matching the search term'],JSON_UNESCAPED_SLASHES),404);
+        }
+    }
 
 }

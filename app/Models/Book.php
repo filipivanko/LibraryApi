@@ -30,4 +30,12 @@ class Book extends Model
 
         return $data;
     }
+    public function getBookLinks(){
+        $data = new stdClass();
+        $data->title = $this->title;
+        $data->_links['book_profile'] = 'http://library-assignment.filipivanko.com/api/books/'.$this->id;
+
+
+        return $data;
+    }
 }
