@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Book;
+use App\Models\Author;
 use Illuminate\Support\Facades\Route;
 
 /*
