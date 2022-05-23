@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Author;
 use App\Models\Book;
+use App\ContentTypeChecker;
 use Illuminate\Http\Request;
 use stdClass;
 
@@ -35,7 +37,30 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $contentChecker = new ContentTypeChecker();
+        if($contentChecker->isNotApplicationJsonContentType($request)){
+            $response = $contentChecker->setWrongContentTypeResponse();
+            return $response;
+        }
+        $data_json = $request->instance()->getContent();
+        $data = json_decode($data_json);
+        $author_id = $data->author_id;
+        $title = $data->title;
+        $copies_available = $data->copies_available;
+        $autor = Author::where('id','=',$author_id)->get();
+        if(count($autor)==0 || empty($title) || empty($copies_available)){
+            return response(json_encode(['message'=>' Bad request - Not all data is provided or author not peviously added'],JSON_UNESCAPED_SLASHES),400);
+        }else{
+            $book =  Book::create(
+                [
+                    'title'=> $title,
+                    'author_id'=>$author_id,
+                    'copies_available' => $copies_available,
+                ]
+            );
+        }
+        return response(json_encode($book),200);
     }
 
     /**
@@ -65,7 +90,28 @@ class BookController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $contentChecker = new ContentTypeChecker();
+        if($contentChecker->isNotApplicationJsonContentType($request)){
+            $response = $contentChecker->setWrongContentTypeResponse();
+            return $response;
+        }
+        $data_json = $request->instance()->getContent();
+        $data = json_decode($data_json);
+        $author_id = $data->author_id;
+        $title = $data->title;
+        $copies_available = $data->copies_available;
+        $book = Book::where('id','=',$id)->get();
+        if(count($book)==0){
+            return response(json_encode(['message'=>'Book does not exist'],JSON_UNESCAPED_SLASHES),404);
+        }else{
+            $book = $book->first();
+            $book->author_id =  $author_id;
+            $book->title = $title;
+            $book->copies_available = $copies_available;
+            $book->save();
+            return response(json_encode($book),200);
+        }
+
     }
 
     /**
@@ -76,7 +122,13 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $book = Book::where('id','=',$id)->get();
+        if(count($book)==0){
+            return response(json_encode(['message'=>'Book does not exist'],JSON_UNESCAPED_SLASHES),404);
+        }else{
+            $book->first()->delete();
+           return response(json_encode(['message'=>'Record '.$id.' succsessfuly deleted.'],JSON_UNESCAPED_SLASHES),200);
+        }
     }
 
 

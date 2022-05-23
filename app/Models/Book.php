@@ -14,6 +14,8 @@ class Book extends Model
     protected $table = 'books';
     public $timestamps = false;
 
+
+
     public function getauthor(){
         return $this->belongsTo('App\Models\Author','author_id','id');
     }
