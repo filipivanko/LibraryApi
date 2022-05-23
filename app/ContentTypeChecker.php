@@ -6,7 +6,7 @@ class ContentTypeChecker
 {
 public function isNotApplicationJsonContentType(Request &$request){
     $content_type = $request->header('Content-Type');
-    if($content_type!== 'application/json'){
+    if($content_type != "application/json"){
         return true;
     }else{
         return false;

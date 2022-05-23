@@ -32,14 +32,12 @@ class AutenticationController extends Controller
     }
 
     public function login(Request $request) {
-
-        $requestData = $request->validate(['email' => 'required', 'password' => 'required']);
-
         $contentChecker = new ContentTypeChecker();
         if($contentChecker->isNotApplicationJsonContentType($request)){
             $response = $contentChecker->setWrongContentTypeResponse();
             return $response;
         }
+
         $data_json = $request->instance()->getContent();
         $data = json_decode($data_json);
         $email = $data->email;
@@ -49,9 +47,9 @@ class AutenticationController extends Controller
             return response(['message' => 'Email and password must be provided'], 400);
         }
 
-        $user = User::where('email', $requestData['email'])->first();
+        $user = User::where('email', $email)->first();
 
-        if(!$user || !Hash::check($requestData['password'], $user->password)) {
+        if(!$user || !Hash::check($password, $user->password)) {
             return response(['message' => 'Username or password is not correct'], 401);
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\ContentTypeChecker;
 use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Http\Request;
@@ -35,7 +36,20 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $contentChecker = new ContentTypeChecker();
+        if($contentChecker->isNotApplicationJsonContentType($request)){
+            $response = $contentChecker->setWrongContentTypeResponse();
+            return $response;
+        }
+        $data_json = $request->instance()->getContent();
+        $data = json_decode($data_json);
+        $name = $data->name;
+            $author =  Author::create(
+                [
+                    'name'=> $name,
+                ]
+            );
+        return response(json_encode($author),200);
     }
 
     /**
@@ -64,7 +78,23 @@ class AuthorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $contentChecker = new ContentTypeChecker();
+        if($contentChecker->isNotApplicationJsonContentType($request)){
+            $response = $contentChecker->setWrongContentTypeResponse();
+            return $response;
+        }
+        $data_json = $request->instance()->getContent();
+        $data = json_decode($data_json);
+        $name = $data->name;
+        $author = Author::where('id','=',$id)->get();
+        if(count($author)==0){
+            return response(json_encode(['message'=>'Author does not exist'],JSON_UNESCAPED_SLASHES),404);
+        }else{
+            $author = $author->first();
+            $author->name =  $name;
+            $author->save();
+            return response(json_encode($author),200);
+        }
     }
 
     /**
@@ -75,7 +105,21 @@ class AuthorController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $author = Author::where('id','=',$id)->get();
+        if(count($author)==0){
+            return response(json_encode(['message'=>'Author does not exist'],JSON_UNESCAPED_SLASHES),404);
+        }
+        $author = $author->first();
+        $books = $author->books;
+        if(count($books)!==0){
+            $booksInfo = [];
+            foreach ($books as $book){
+                array_push($booksInfo,$book->getBookLinks());
+            }
+            return response(json_encode(['message'=>'Author has stored books, delete books before the author', 'books'=>$booksInfo],JSON_UNESCAPED_SLASHES),400);
+        }
+        $author->delete();
+        return response(json_encode(['message'=>'Author '.$id.' succsessfuly deleted.'],JSON_UNESCAPED_SLASHES),200);
     }
 
     public function find($term)
